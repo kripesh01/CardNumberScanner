@@ -23,8 +23,7 @@ or breaches.
 - Makes regular card data scanning a simple, automated task.
 - Can be scheduled to run periodically or used on-demand during audits or incident response.
 
-**🚀 How to Run the Script**
-
+**🚀 How to Run the Script**    
 This script is written in PowerShell and designed for use in a Windows environment.
 
 **🔹 Step-by-step Instructions:**
@@ -39,7 +38,7 @@ This script is written in PowerShell and designed for use in a Windows environme
     
         .\CardScan.ps1
 
-5. The script will:
+5. The script will:    
 - Start scanning the current directory and its subfolders.
 - Log execution details and results.
 - Show valid card matches on the screen.

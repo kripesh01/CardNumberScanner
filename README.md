@@ -1,61 +1,103 @@
-**🔍 PowerShell Script to Scan for Card Numbers in Clear Text Files — A Must-Have Tool for Banks**
+## 🔍 PowerShell Script to Scan for Card Numbers in Clear Text Files — A Must-Have Tool for Banks
 
-**💡 Why This Script Matters**
+## 🚀 Overview
 
-Handling card data securely is a critical responsibility for any financial institution. With increasing regulations like PCI-DSS, banks are required to ensure that cardholder data is not stored in clear text — whether intentionally or by accident.
-However, in real-world operations, sensitive card numbers sometimes find their way into text files, logs, reports, or exported spreadsheets due to system misconfigurations or human error. That’s where this PowerShell script comes in.
-This script automates the detection of clear-text card numbers across files within a system. It helps identify compliance violations, detect potential data leaks, and strengthen internal security posture.
+Storing card numbers in cleartext is a serious security risk — one that can lead to non-compliance, data breaches, and reputational damage. This PowerShell script was developed to **scan for unencrypted card numbers** across various file types on Windows systems.
 
+Whether you're conducting a PCI-DSS compliance review, an internal audit, or proactively securing your infrastructure, this script will help you **identify and log any 16-digit card numbers found in plaintext**, verifying them with the Luhn algorithm and checking against a known set of valid BINs (Bank Identification Numbers).
 
-**🛠️ What Does the Script Do?**
-- Scans recursively through text-based files (.txt, .csv, .log, .xml, .docx, .xlsx, etc.).
-- Detects potential card numbers using pattern matching and validates them with the Luhn algorithm.
-- Filters only valid BIN numbers used by actual cards.
-- Skips known test card numbers to avoid false positives.
-- Saves all scan results to both a local file and a network path
-- Provides a summary report at the end.
+---
 
-**🔐 Why It’s Important for Banks**
-- Helps in auditing stored files for sensitive data exposure.
-- Ensures compliance with PCI-DSS requirements.
-- Acts as a preventive measure to reduce risks of data leakage 
-or breaches.
-- Makes regular card data scanning a simple, automated task.
-- Can be scheduled to run periodically or used on-demand during audits or incident response.
+## 📦 Features
 
-**🚀 How to Run the Script**    
-This script is written in PowerShell and designed for use in a Windows environment.
+- ✅ **Recursive directory scanning**
+- ✅ **Supports multiple file types**: `.txt`, `.csv`, `.log`, `.json`, `.xml`, `.docx`, `.xlsx`, etc.
+- ✅ **Validates card numbers using the Luhn algorithm**
+- ✅ **Filters matches by real-world BINs to reduce false positives**
+- ✅ **Skips common test cards**
+- ✅ **Logs results both locally and to a specified network share**
+- ✅ **Colored terminal output for matches and summary**
 
-**🔹 Step-by-step Instructions:**
+---
 
-1. Open PowerShell as Administrator (Recommended).
+## 🛠️ Requirements
 
-2. Save the script into a *.ps1* file, for example: *CardScan.ps1*.
+- OS: Windows 10/11, Server 2016+  
+- PowerShell 5.1 or later  
+- Sufficient permissions to scan files and write to `P:` drive (network path)
 
-3. Make sure the drive P:\CARDSCAN\ exists or update the path accordingly in the script.
+---
 
-4. Run the script:
-    
-        .\CardScan.ps1
+## 📂 File Output
 
-5. The script will:    
-- Start scanning the current directory and its subfolders.
-- Log execution details and results.
-- Show valid card matches on the screen.
-- Save a full output in:
-- The script directory (*output.txt*)
-- A network folder *(P:\CARDSCAN\HOSTNAME-TIMESTAMP-output.txt)*
+The script generates two logs:
 
-🧠 How It Works *(Behind the Scenes)*
-- The script gets the host and user details, plus the location where it is run.
-- It defines common text-based file extensions where card data might be stored.
-- It looks for 16-digit numbers starting with approved BINs.
-- Uses the Luhn algorithm to validate if the number could be a legitimate card.
-- If it finds any matches, it logs the file path and the number, helping the auditor investigate further.
+1. `output.txt` – A local file in the same directory as the script.
+2. `\\P\CARDSCAN\<hostname>-<timestamp>-output.txt` – A backup/log copy on a mapped network share.
 
-✅ Conclusion
+---
 
-This card scan script offers a simple yet powerful way to enhance card data security within a bank’s internal systems. It's especially useful for compliance checks, security audits, or preparing for regulatory inspections.
-Regular use of this script ensures that your team is actively looking for and eliminating any stored cardholder data that could lead to security breaches or regulatory penalties.
+## 🧪 What It Scans
 
-*Start scanning your systems today and take a proactive step in protecting sensitive customer data.*
+The script scans for **16-digit numeric strings** and performs the following checks:
+
+- First 4 digits match a **known BIN**.
+- Passes the **Luhn checksum**.
+- Not in a **test card exclusion list**.
+
+---
+
+## ⚙️ How to Use
+
+1. **Clone the repository** or download the `.ps1` file:
+
+   ```powershell
+   git clone https://github.com/kripesh01/CardNumberScanner.git
+   cd CardNumberScanner
+
+2. **Run PowerShell as Administrator** (optional but recommended).
+
+3. **Execute the script**
+    ```powershell
+    .\CardScanner.ps1
+    ```
+4.  **View the results:**
+- Output is printed to the console.
+- Logs are saved in the current directory and to the network path `(P:\CARDSCAN).`
+
+---
+## 📊 Example Output
+    Card Scanning Started...
+    ----------------------------------------
+    File: C:\Users\John\Documents\client_data.txt
+    Match: 4020123456789012
+
+    File: C:\HR\exports\july.csv
+    Match: 5210123456784321
+
+    ----------------------------------------
+    Scan Completed.
+    Total Files Scanned: 412
+    Total Valid Card Matches Found: 2
+    Results saved to:
+    - output.txt
+    - P:\CARDSCAN\HOSTNAME-20250411-output.txt
+---
+## 🧠 Why This Matters
+**“Sensitive data should never live in plaintext.”**   
+This script is part of a larger security hygiene effort — ensuring compliance with standards like PCI-DSS, ISO/IEC 27001, and general data minimization practices. It’s a quick win in your organization's internal audit checklist.
+
+---
+## 🧩 Customization
+- ✏️ Add more file extensions to the `$textRelatedExtensions` array.
+- 🔒 Add more valid BINs to the `$validBinsArray` if your organization uses others.
+- 🚫 Modify the `$skipCards` array to exclude internal test cards or whitelisted samples.
+
+---
+## 🛡️ Disclaimer
+This script is provided *as-is*. Always test in a safe environment before running on production machines. You are responsible for ensuring it aligns with your organization’s policies and regulations.
+
+---
+## 🙌 Credits
+Created by [kripesh01] — Security & Compliance Team   
+Maintained by the ISD Department @ [SiddharthaBank]

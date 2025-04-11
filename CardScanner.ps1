@@ -1,6 +1,6 @@
 # ===============================
 # PowerShell Script to Detect Clear-Text Card Numbers in Files
-# Author: [Your Name]
+# Author: @kripesh01
 # Purpose: Identify and log card numbers stored in clear text for compliance and security audits
 # ===============================
 

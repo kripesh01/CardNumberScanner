@@ -22,11 +22,18 @@ if (Test-Path $LocalOutputFile) {
     Remove-Item -Path $LocalOutputFile -ErrorAction SilentlyContinue
 }
 
-# Function to save text output to both local and network files
+# Function to save output to both files (only save to network if path exists)
 function Save-OutputToFile {
     param ([string]$Output)
-    $Output | Out-File -FilePath $NetworkOutputFile -Append -ErrorAction SilentlyContinue
+
+    # Always write to local output
     $Output | Out-File -FilePath $LocalOutputFile -Append -ErrorAction SilentlyContinue
+
+    # Write to network location only if path is reachable
+    $networkDirectory = Split-Path -Parent $NetworkOutputFile
+    if (Test-Path $networkDirectory) {
+        $Output | Out-File -FilePath $NetworkOutputFile -Append -ErrorAction SilentlyContinue
+    }
 }
 
 # Function to validate card numbers using the Luhn Algorithm

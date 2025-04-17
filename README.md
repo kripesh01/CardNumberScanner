@@ -98,6 +98,3 @@ This script is part of a larger security hygiene effort — ensuring compliance 
 This script is provided *as-is*. Always test in a safe environment before running on production machines. You are responsible for ensuring it aligns with your organization’s policies and regulations.
 
 ---
-## 🙌 Credits
-Created by [kripesh01] — Security & Compliance Team   
-Maintained by the ISD Department @ [SiddharthaBank]

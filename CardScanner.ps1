@@ -73,7 +73,7 @@ Write-Host "Card Scanning Started..." -ForegroundColor Cyan
 Write-Host "----------------------------------------"
 
 # File extensions to scan (commonly used to store or export data)
-$textRelatedExtensions = @(".txt", ".log", ".docx", ".xlsx", ".csv", ".xml", ".json", ".doc", ".xls")
+$textRelatedExtensions = @(".txt", ".log", ".docx", ".xlsx", ".csv", ".xml", ".json", ".doc", ".xls", ".sql", ".conf")
 
 # Valid BINs (Bank Identification Numbers) to filter potential card numbers
 $validBinsArray = @(

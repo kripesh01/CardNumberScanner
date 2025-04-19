@@ -98,38 +98,108 @@ $matchFound = $false
 $totalFiles = 0
 $totalMatches = 0
 
+# Function to process .xlsx files using ImportExcel
+function Get-ExcelContent {
+    param ([string]$FilePath)
+
+    try {
+        # Import the Excel file
+        $excelData = Import-Excel -Path $FilePath -NoHeader
+        $content = ""
+        # Concatenate all cell values into a single string
+        foreach ($row in $excelData) {
+            foreach ($cell in $row.PSObject.Properties.Value) {
+                if ($cell) { $content += "$cell " }
+            }
+        }
+        return $content
+    } catch {
+        return $null
+    }
+}
+
+# Function to process .docx files using Word COM object
+function Get-DocxContent {
+    param ([string]$FilePath)
+
+    try {
+        # Create Word COM object
+        $word = New-Object -ComObject Word.Application
+        $word.Visible = $false
+        $doc = $word.Documents.Open($FilePath)
+        $content = $doc.Content.Text
+        $doc.Close()
+        $word.Quit()
+        [System.Runtime.Interopservices.Marshal]::ReleaseComObject($word) | Out-Null
+        return $content
+    } catch {
+        return $null
+    }
+}
+
 # Begin scanning files recursively
-Get-ChildItem -Recurse -File -Include *.txt, *.log, *.docx, *.xlsx, *.csv, *.xml, *.json, *.doc, *.xls -ErrorAction SilentlyContinue | 
+Get-ChildItem -Recurse -File -Include *.txt, *.log, *.docx, *.xlsx, *.csv, *.xml, *.json, *.doc, *.xls, *.sql, *.conf -ErrorAction SilentlyContinue | 
+Where-Object { $_.FullName -ne $LocalOutputFile } | 
 ForEach-Object {
     $totalFiles++
     $filePath = $_.FullName
+    $extension = $_.Extension.ToLower()
+
+    # Display progress: Show the file being scanned
+    Write-Host "Scanning: $filePath" -ForegroundColor White
 
     try {
-        # Read entire file content
-        $fileContent = Get-Content -Path $filePath -Raw -ErrorAction Stop
+        $fileContent = $null
+        $fileMatches = 0  # Counter for matches in the current file
 
-        # Match pattern for 16-digit numbers, capture the first 4 digits
-        $matches = [regex]::Matches($fileContent, '\b(\d{4})\d{12}\b')
+        # Handle file content based on extension
+        if ($extension -eq ".xlsx") {
+            $fileContent = Get-ExcelContent -FilePath $filePath
+        } elseif ($extension -eq ".docx") {
+            $fileContent = Get-DocxContent -FilePath $filePath
+        } else {
+            # Use Get-Content for text-based files
+            $fileContent = Get-Content -Path $filePath -Raw -ErrorAction Stop
+        }
 
-        foreach ($match in $matches) {
-            $firstFourDigits = $match.Groups[1].Value
-            $fullMatch = $match.Value
+        if ($fileContent) {
+            # Match pattern for 16-digit numbers, capture the first 4 digits
+            $matches = [regex]::Matches($fileContent, '\b(\d{4})\d{12}\b')
 
-            # Skip known test cards
-            if ($skipCards -contains $fullMatch) { continue }
+            foreach ($match in $matches) {
+                $firstFourDigits = $match.Groups[1].Value
+                $fullMatch = $match.Value
 
-            # Validate BIN and card number using Luhn algorithm
-            if ($validBins.ContainsKey($firstFourDigits) -and (Test-LuhnAlgorithm -CardNumber $fullMatch)) {
-                $matchFound = $true
-                $totalMatches++
-                $matchOutput = "File: $filePath`n  Match: $fullMatch"
-                Write-Host -ForegroundColor Green $matchOutput
-                Save-OutputToFile -Output $matchOutput
+                # Skip known test cards
+                if ($skipCards -contains $fullMatch) { continue }
+
+                # Validate BIN and card number using Luhn algorithm
+                if ($validBins.ContainsKey($firstFourDigits) -and (Test-LuhnAlgorithm -CardNumber $fullMatch)) {
+                    $matchFound = $true
+                    $totalMatches++
+                    $fileMatches++
+                    $matchOutput = "File: $filePath`n  Match: $fullMatch"
+                    # Display in console (only for matches)
+                    Write-Host $matchOutput -ForegroundColor Green
+                    # Save to file
+                    Save-OutputToFile -Output $matchOutput
+                    # Store the match for final display
+                    $allMatches += $fullMatch
+                }
             }
+
+            # If no matches were found in this file, display a message
+            if ($fileMatches -eq 0) {
+                Write-Host "  No card numbers detected" -ForegroundColor Yellow
+            }
+        } else {
+            # If file content couldn't be read, treat as no matches
+            Write-Host "  No card numbers detected" -ForegroundColor Yellow
         }
     } catch {
         # Handle file read errors (e.g., access denied, corrupted files)
         Save-OutputToFile -Output "Error reading file: $filePath - $_"
+        Write-Host "  No card numbers detected" -ForegroundColor Yellow
     }
 }
 

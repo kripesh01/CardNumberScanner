@@ -141,6 +141,7 @@ Total Files Scanned: $totalFiles
 Total Valid Card Matches Found: $totalMatches
 Results saved to:
   - $LocalOutputFile
+  - $NetworkOutputFile
 ----------------------------------------
 "@
 Write-Host $summary -ForegroundColor Cyan

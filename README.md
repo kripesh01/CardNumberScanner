@@ -97,11 +97,6 @@ The script scans for **16-digit numeric strings** and performs the following che
     - output.txt
     - P:\CARDSCAN\HOSTNAME-20250411-output.txt
 ---
-## 🧠 Why This Matters
-**“Sensitive data should never live in plaintext.”**   
-This script is part of a larger security hygiene effort — ensuring compliance with standards like PCI-DSS, ISO/IEC 27001, and general data minimization practices. It’s a quick win in your organization's internal audit checklist.
-
----
 ## 🧩 Customization
 - ✏️ Add more file extensions to the `$textRelatedExtensions` array.
     ```powershell

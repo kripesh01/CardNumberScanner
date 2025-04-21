@@ -108,14 +108,32 @@ This script is part of a larger security hygiene effort — ensuring compliance 
 
     $skipCards = @("4364442222222222", "4020100102020000", "4020100202020000")
     ```
-- 🗂️ Modify network output file location `$NetworkOutputFile`
+- 🗂️ Modify network log path via `$NetworkOutputFile` to customize destination directory.
     ```powershell
     # Define output file locations
 
     $NetworkOutputFile = "Drive:\CARDSCAN\$HostName-$TimeStamp-output.txt"  # Save results to network path
     ```
 ---
+## 🧾 Tool Comparison
+| Feature                              | 🛠️ PowerShell Script | 🕷️ CUPSPIDER | 🔍 PANfinder | 💼 Commercial Tools |
+|--------------------------------------|:--------------------:|:------------:|:------------:|:-------------------:|
+| Open Source                          | ✅ Yes                | ✅ Yes       | ✅ Yes       | ❌ No               |
+| Text File Scanning                   | ✅ Yes                | ✅ Yes       | ✅ Yes       | ✅ Yes              |
+| Office File Support (.docx, .xlsx)   | ✅ Yes                | ❌ No        | ❌ No        | ✅ Yes              |
+| Luhn Algorithm Validation            | ✅ Yes                | ✅ Yes       | ✅ Yes       | ✅ Yes              |
+| Valid BIN Filtering                  | ✅ Yes                | ❌ No        | ❌ No        | ✅ Yes              |
+| Test Card Exclusion                  | ✅ Yes                | ❌ No        | ❌ No        | ✅ Yes              |
+| Excel Export Support                 | ✅ Yes                | ❌ No        | ❌ No        | ✅ Yes              |
+| Network Output Logging               | ✅ Yes                | ❌ No        | ❌ No        | ✅ Yes              |
+| Fully Customizable                   | ✅ Script-Based       | ⚠️ Limited   | ⚠️ Limited   | ⚠️ GUI Configurable |
+| OS Compatibility                     | ❌ Windows Only       | ✅ Cross-OS  | ✅ Cross-OS  | ✅ Mostly           |
+
+## 🔍 Summary
+- **For Internal Audits and PCI Compliance:** This script is a lightweight, fast, and reliable way to identify unsecured card data — especially useful in Windows-based enterprise environments.
+- **Compared to Python tools:** While CUPSPIDER and PANfinder are powerful in Unix-style environments, they don’t support Office formats or network share logging.
+- **Against commercial scanners:** Tools like Spirion or Ground Labs offer GUI dashboards, deep integrations, and advanced analytics — but at a cost. Your script offers a solid, free alternative with just the features you need.
+---
 ## 🛡️ Disclaimer
 This script is provided *as-is*. Always test in a safe environment before running on production machines. You are responsible for ensuring it aligns with your organization’s policies and regulations.
-
 ---

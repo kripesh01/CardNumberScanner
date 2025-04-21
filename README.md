@@ -91,9 +91,29 @@ This script is part of a larger security hygiene effort — ensuring compliance 
 ---
 ## 🧩 Customization
 - ✏️ Add more file extensions to the `$textRelatedExtensions` array.
-- 🔒 Add more valid BINs to the `$validBinsArray` if your organization uses others.
-- 🚫 Modify the `$skipCards` array to exclude internal test cards or whitelisted samples.
+    ```powershell
+    # File extensions to scan (commonly used to store or export data)
 
+    $textRelatedExtensions = @(".txt", ".log", ".docx", ".xlsx", ".csv", ".xml", ".json", ".doc", ".xls", ".sql", ".conf")
+    ```
+- 🔒 Add more valid BINs to the `$validBinsArray` if your organization uses others.
+    ```powershell
+    #Valid BINs (Bank Identification Numbers) to filter potential card numbers
+
+    $validBinsArray = @("3771", "4020", "4024", "4029", "4030", "4031", "4037", "4050", "4055", "4056", "4061", "4067", "4089", "4090", "4101", "4107", "4135", "4162", "4181", "4182", "4189", "4206", "4211", "4214", "4226", "4232", "4235", "4284", "4317", "4336", "4359", "4363", "4364", "4368", "4373", "4390", "4391", "4393", "4404", "4424", "4430", "4438", "4500", "4504", "4511", "4520", "4574", "4577", "4579", "4581", "4587", "4595", "4610", "4617", "4619", "4622", "4624", "4637", "4660", "4662", "4689", "4705", "4709", "4748", "4775", "4813", "4837", "4848", "4862", "4895", "4897", "4922", "4924", "4938", "4987", "5116", "5181", "5210", "5218", "5246", "5399", "5421", "5434", "5436", "5483", "5484", "5486", "5487", "5543", "5559", "6365")
+    ```
+- 🚫 Modify the `$skipCards` array to exclude internal test cards or whitelisted samples.
+    ```powershell
+    #Skip test card numbers to avoid false positives
+
+    $skipCards = @("4364442222222222", "4020100102020000", "4020100202020000")
+    ```
+- 🗂️ Modify network output file location `$NetworkOutputFile`
+    ```powershell
+    # Define output file locations
+
+    $NetworkOutputFile = "Drive:\CARDSCAN\$HostName-$TimeStamp-output.txt"  # Save results to network path
+    ```
 ---
 ## 🛡️ Disclaimer
 This script is provided *as-is*. Always test in a safe environment before running on production machines. You are responsible for ensuring it aligns with your organization’s policies and regulations.

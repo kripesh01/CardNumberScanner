@@ -146,7 +146,9 @@ This script is part of a larger security hygiene effort — ensuring compliance 
 - **For Internal Audits and PCI Compliance:** This script is a lightweight, fast, and reliable way to identify unsecured card data — especially useful in Windows-based enterprise environments.
 - **Compared to Python tools:** While CUPSPIDER and PANfinder are powerful in Unix-style environments, they don’t support Office formats or network share logging.
 - **Against commercial scanners:** Tools like Spirion or Ground Labs offer GUI dashboards, deep integrations, and advanced analytics — but at a cost. Your script offers a solid, free alternative with just the features you need.
+
 ---
 ## 🛡️ Disclaimer
 This script is provided *as-is*. Always test in a safe environment before running on production machines. You are responsible for ensuring it aligns with your organization’s policies and regulations.
+
 ---

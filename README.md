@@ -21,6 +21,19 @@ Whether you're conducting a PCI-DSS compliance review, an internal audit, or pro
 
 ---
 
+## 🧠 Why This Matters
+
+***“Sensitive data should never live in plaintext.”***   
+Any card numbers stored in plaintext—whether in log files, CSVs, or configuration documents—are a liability. Regulations like PCI-DSS (Payment Card Industry Data Security Standard) prohibit unencrypted storage of card numbers, and non-compliance can result in fines, legal action, or reputational damage. Manually searching for these numbers across thousands of files is time-consuming and error-prone.
+
+This PowerShell script automates the process, enabling you to:
+- **Identify Risks:** Detect card numbers in plaintext before they’re exploited.
+- **Ensure Compliance:** Provide evidence for PCI-DSS, ISO/IEC 27001, or internal audits.
+- **Reduce False Positives:** Use the Luhn algorithm and BIN filtering to focus on valid card numbers.
+- **Streamline Reporting:** Generate detailed logs for analysis and remediation.
+  
+---
+
 ## 🛠️ Requirements
 
 - OS: Windows 10/11, Server 2016+  

@@ -192,6 +192,11 @@ ForEach-Object {
             # Match pattern for 16-digit numbers, capture the first 4 digits
             $matches = [regex]::Matches($fileContent, '\b(\d{4})\d{12}\b')
 
+            #Regex to match common formats and normalize matches by removing non-digits.
+     	    $matches = [regex]::Matches($fileContent, '\b(\d{4})[- ]?\d{4}[- ]?\d{4}[- ]?\d{4}\b')
+            $fullMatch = $match.Value -replace '[-\s]', '' # Normalize by removing hyphens/spaces
+
+
             foreach ($match in $matches) {
                 $firstFourDigits = $match.Groups[1].Value
                 $fullMatch = $match.Value

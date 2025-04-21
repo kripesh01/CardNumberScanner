@@ -10,6 +10,7 @@ Whether you're conducting a PCI-DSS compliance review, an internal audit, or pro
 
 ## 📦 Features
 
+- ✅ **Automatically installs required PowerShell modules**
 - ✅ **Recursive directory scanning**
 - ✅ **Supports multiple file types**: `.txt`, `.csv`, `.log`, `.json`, `.xml`, `.docx`, `.xlsx`, etc.
 - ✅ **Validates card numbers using the Luhn algorithm**

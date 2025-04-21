@@ -4,6 +4,32 @@
 # Purpose: Identify and log card numbers stored in clear text for compliance and security audits
 # ===============================
 
+# Function to check and install required modules
+function Ensure-Module {
+    param (
+        [string]$ModuleName
+    )
+
+    if (-not (Get-Module -ListAvailable -Name $ModuleName)) {
+        Write-Host "Module '$ModuleName' not found. Installing..." -ForegroundColor Yellow
+        try {
+            Install-Module -Name $ModuleName -Scope CurrentUser -Force -AllowClobber
+            Write-Host "Module '$ModuleName' installed successfully." -ForegroundColor Green
+        } catch {
+            Write-Host "Failed to install module '$ModuleName': $_" -ForegroundColor Red
+            exit 1
+        }
+    } else {
+        Write-Host "Module '$ModuleName' is already installed." -ForegroundColor Cyan
+    }
+}
+
+# Ensure required module is installed
+Ensure-Module -ModuleName "ImportExcel"
+
+# Import the module after ensuring it's available
+Import-Module ImportExcel -Force
+
 # Get Host and User information
 $HostName = $env:COMPUTERNAME
 $UserName = $env:USERDOMAIN + "\" + $env:USERNAME
@@ -211,7 +237,6 @@ Total Files Scanned: $totalFiles
 Total Valid Card Matches Found: $totalMatches
 Results saved to:
   - $LocalOutputFile
-  - $NetworkOutputFile
 ----------------------------------------
 "@
 Write-Host $summary -ForegroundColor Cyan

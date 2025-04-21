@@ -1,4 +1,4 @@
-## 🔍 PowerShell Script to Scan for Card Numbers in Clear Text Files — A Must-Have Security Tool
+# 🔍 PowerShell Script to Scan for Card Numbers in Clear Text Files — A Must-Have Security Tool
 
 ## 🚀 Overview
 

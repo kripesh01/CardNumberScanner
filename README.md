@@ -16,7 +16,9 @@ Whether you're conducting a PCI-DSS compliance review, an internal audit, or pro
 - ✅ **Validates card numbers using the Luhn algorithm**
 - ✅ **Filters matches by real-world BINs to reduce false positives**
 - ✅ **Skips common test cards**
+- ✅ **Deduplicates card numbers found per file**
 - ✅ **Logs results both locally and to a specified network share**
+- ✅ **Verbose logging option for detailed monitoring**
 - ✅ **Colored terminal output for matches and summary**
 
 ---
@@ -58,6 +60,7 @@ The script scans for **16-digit numeric strings** and performs the following che
 - First 4 digits match a **known BIN**.
 - Passes the **Luhn checksum**.
 - Not in a **test card exclusion list**.
+- Ensures no **duplicate matches** are logged from the same file.
 
 ---
 

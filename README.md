@@ -38,7 +38,7 @@ This PowerShell script automates the process, enabling you to:
 
 - OS: Windows 10/11, Server 2016+  
 - PowerShell 5.1 or later  
-- Sufficient permissions to scan files and write to `P:` drive (network path)
+- Sufficient permissions to scan files.
 
 ---
 

@@ -4,74 +4,91 @@
 # Purpose: Identify and log card numbers stored in clear text for compliance and security audits
 # ===============================
 
+# Define parameters to support verbose logging
+[CmdletBinding()]
+param ()
+# Function to check internet connectivity
+function Test-InternetConnection {
+    Write-Verbose "Checking internet connectivity..."
+    try {
+        $result = Test-Connection -ComputerName 8.8.8.8 -Count 1 -Quiet -ErrorAction Stop
+        Write-Verbose "Internet connectivity check result: $result"
+        return $result
+    } catch {
+        Write-Verbose "Internet connectivity check failed: $_"
+        return $false
+    }
+}
 # Function to check and install required modules
 function Ensure-Module {
     param (
         [string]$ModuleName
     )
-
+    Write-Verbose "Checking for module '$ModuleName'..."
     if (-not (Get-Module -ListAvailable -Name $ModuleName)) {
-        Write-Host "Module '$ModuleName' not found. Installing..." -ForegroundColor Yellow
-        try {
-            Install-Module -Name $ModuleName -Scope CurrentUser -Force -AllowClobber
-            Write-Host "Module '$ModuleName' installed successfully." -ForegroundColor Green
-        } catch {
-            Write-Host "Failed to install module '$ModuleName': $_" -ForegroundColor Red
-            exit 1
+        Write-Host "Module '$ModuleName' not found." -ForegroundColor Yellow
+        if (Test-InternetConnection) {
+            Write-Host "Internet available. Attempting to install module '$ModuleName'..." -ForegroundColor Yellow
+            try {
+                Install-Module -Name $ModuleName -Scope CurrentUser -Force -AllowClobber
+                Write-Host "Module '$ModuleName' installed successfully." -ForegroundColor Green
+                return $true
+            } catch {
+                Write-Host "Failed to install module '$ModuleName': $_" -ForegroundColor Red
+                Write-Verbose "Module installation failed. Will skip Excel file processing."
+                return $false
+            }
+        } else {
+            Write-Host "No internet connection. Skipping module '$ModuleName' installation." -ForegroundColor Yellow
+            Write-Verbose "No internet. Module not installed. Will skip Excel file processing."
+            return $false
         }
     } else {
         Write-Host "Module '$ModuleName' is already installed." -ForegroundColor Cyan
+        return $true
     }
 }
-
-# Ensure required module is installed
-Ensure-Module -ModuleName "ImportExcel"
-
-# Import the module after ensuring it's available
-Import-Module ImportExcel -Force
-
+# Check for ImportExcel module and track its availability
+$excelModuleAvailable = Ensure-Module -ModuleName "ImportExcel"
+if ($excelModuleAvailable) {
+    Import-Module ImportExcel -Force
+}
 # Get Host and User information
 $HostName = $env:COMPUTERNAME
 $UserName = $env:USERDOMAIN + "\" + $env:USERNAME
 $TimeStamp = Get-Date -Format "yyyyMMdd-HHmmss"
-
 # Get the full path of the script location
 $ScriptPath = $MyInvocation.MyCommand.Definition
 $ScriptDirectory = Split-Path -Parent $ScriptPath
-
 # Define output file locations
 $NetworkOutputFile = "P:\CARDSCAN\$HostName-$TimeStamp-output.txt"  # Save results to network path
 $LocalOutputFile = Join-Path -Path $ScriptDirectory -ChildPath "output.txt"  # Local output
-
 # Remove the existing local output file if it exists
 if (Test-Path $LocalOutputFile) {
+    Write-Verbose "Removing existing local output file: $LocalOutputFile"
     Remove-Item -Path $LocalOutputFile -ErrorAction SilentlyContinue
 }
-
-# Function to save output to both files (only save to network if path exists)
+# Array to store all matched card numbers for final display
+$allMatches = @()
+# Function to save output to both files (no console output unless verbose)
 function Save-OutputToFile {
     param ([string]$Output)
-
-    # Always write to local output
+    Write-Verbose "Saving output to files: $LocalOutputFile, $NetworkOutputFile"
     $Output | Out-File -FilePath $LocalOutputFile -Append -ErrorAction SilentlyContinue
-
-    # Write to network location only if path is reachable
     $networkDirectory = Split-Path -Parent $NetworkOutputFile
     if (Test-Path $networkDirectory) {
         $Output | Out-File -FilePath $NetworkOutputFile -Append -ErrorAction SilentlyContinue
+    } else {
+        Write-Verbose "Network path $networkDirectory is not reachable."
     }
 }
-
 # Function to validate card numbers using the Luhn Algorithm
 function Test-LuhnAlgorithm {
     param ([string]$CardNumber)
-
-    # Extract digits and initialize variables
+    Write-Verbose "Validating card number ${CardNumber} with Luhn Algorithm..."
     $digits = $CardNumber -split '' | Where-Object { $_ -match '\d' }
     $sum = 0
     $isEven = $false
-
-    # Loop through digits from right to left
     for ($i = $digits.Count - 1; $i -ge 0; $i--) {
         $digit = [int]$digits[$i]
         if ($isEven) {
@@ -82,11 +99,11 @@ function Test-LuhnAlgorithm {
         }
         $isEven = -not $isEven
     }
-
-    return ($sum % 10 -eq 0)
+    $result = ($sum % 10 -eq 0)
+    Write-Verbose "Luhn validation result for ${CardNumber}: $result"
+    return $result
 }
-
-# Record execution details
+# Record execution details (only to file)
 $executionDetails = @"
 Script executed on: $HostName
 User: $UserName
@@ -94,14 +111,11 @@ Execution Time: $TimeStamp
 Script Location: $ScriptPath
 "@
 Save-OutputToFile -Output $executionDetails
-
 Write-Host "Card Scanning Started..." -ForegroundColor Cyan
-Write-Host "----------------------------------------"
-
-# File extensions to scan (commonly used to store or export data)
+Write-Host "----------------------------------------" -ForegroundColor Cyan
+# File extensions to scan
 $textRelatedExtensions = @(".txt", ".log", ".docx", ".xlsx", ".csv", ".xml", ".json", ".doc", ".xls", ".sql", ".conf")
-
-# Valid BINs (Bank Identification Numbers) to filter potential card numbers
+# Valid BINs (Bank Identification Numbers)
 $validBinsArray = @(
     "3771", "4020", "4024", "4029", "4030", "4031", "4037", "4050", "4055", "4056", "4061", "4067",
     "4089", "4090", "4101", "4107", "4135", "4162", "4181", "4182", "4189", "4206", "4211", "4214",
@@ -112,44 +126,38 @@ $validBinsArray = @(
     "4924", "4938", "4987", "5116", "5181", "5210", "5218", "5246", "5399", "5421", "5434", "5436",
     "5483", "5484", "5486", "5487", "5543", "5559", "6365"
 )
-# Convert array to hashtable for faster lookup
 $validBins = @{}
 $validBinsArray | ForEach-Object { $validBins[$_] = $true }
-
-# Skip test card numbers to avoid false positives
+# Skip test card numbers
 $skipCards = @("4364442222222222", "4020100102020000", "4020100202020000")
-
 # Initialize counters
 $matchFound = $false
 $totalFiles = 0
 $totalMatches = 0
-
-# Function to process .xlsx files using ImportExcel
+# Function to process .xlsx files
 function Get-ExcelContent {
     param ([string]$FilePath)
-
+    Write-Verbose "Processing Excel file: $FilePath"
     try {
-        # Import the Excel file
         $excelData = Import-Excel -Path $FilePath -NoHeader
         $content = ""
-        # Concatenate all cell values into a single string
         foreach ($row in $excelData) {
             foreach ($cell in $row.PSObject.Properties.Value) {
                 if ($cell) { $content += "$cell " }
             }
         }
+        Write-Verbose "Excel content extracted successfully."
         return $content
     } catch {
+        Write-Verbose "Failed to process Excel file: $_"
         return $null
     }
 }
-
-# Function to process .docx files using Word COM object
+# Function to process .docx files
 function Get-DocxContent {
     param ([string]$FilePath)
-
+    Write-Verbose "Processing Word document: $FilePath"
     try {
-        # Create Word COM object
         $word = New-Object -ComObject Word.Application
         $word.Visible = $false
         $doc = $word.Documents.Open($FilePath)
@@ -157,85 +165,100 @@ function Get-DocxContent {
         $doc.Close()
         $word.Quit()
         [System.Runtime.Interopservices.Marshal]::ReleaseComObject($word) | Out-Null
+        Write-Verbose "Word document content extracted successfully."
         return $content
     } catch {
+        Write-Verbose "Failed to process Word document: $_"
         return $null
     }
 }
-
 # Begin scanning files recursively
-Get-ChildItem -Recurse -File -Include *.txt, *.log, *.docx, *.xlsx, *.csv, *.xml, *.json, *.doc, *.xls, *.sql, *.conf -ErrorAction SilentlyContinue | 
-Where-Object { $_.FullName -ne $LocalOutputFile } | 
-ForEach-Object {
-    $totalFiles++
-    $filePath = $_.FullName
-    $extension = $_.Extension.ToLower()
-
-    # Display progress: Show the file being scanned
-    Write-Host "Scanning: $filePath" -ForegroundColor White
-
-    try {
-        $fileContent = $null
-        $fileMatches = 0  # Counter for matches in the current file
-
-        # Handle file content based on extension
-        if ($extension -eq ".xlsx") {
-            $fileContent = Get-ExcelContent -FilePath $filePath
-        } elseif ($extension -eq ".docx") {
-            $fileContent = Get-DocxContent -FilePath $filePath
-        } else {
-            # Use Get-Content for text-based files
-            $fileContent = Get-Content -Path $filePath -Raw -ErrorAction Stop
-        }
-
-        if ($fileContent) {
-            # Match pattern for 16-digit numbers, capture the first 4 digits
-            $matches = [regex]::Matches($fileContent, '\b(\d{4})\d{12}\b')
-
-            #Regex to match common formats and normalize matches by removing non-digits.
-     	    $matches = [regex]::Matches($fileContent, '\b(\d{4})[- ]?\d{4}[- ]?\d{4}[- ]?\d{4}\b')
-            $fullMatch = $match.Value -replace '[-\s]', '' # Normalize by removing hyphens/spaces
-
-
-            foreach ($match in $matches) {
-                $firstFourDigits = $match.Groups[1].Value
-                $fullMatch = $match.Value
-
-                # Skip known test cards
-                if ($skipCards -contains $fullMatch) { continue }
-
-                # Validate BIN and card number using Luhn algorithm
-                if ($validBins.ContainsKey($firstFourDigits) -and (Test-LuhnAlgorithm -CardNumber $fullMatch)) {
-                    $matchFound = $true
-                    $totalMatches++
-                    $fileMatches++
-                    $matchOutput = "File: $filePath`n  Match: $fullMatch"
-                    # Display in console (only for matches)
-                    Write-Host $matchOutput -ForegroundColor Green
-                    # Save to file
-                    Save-OutputToFile -Output $matchOutput
-                    # Store the match for final display
-                    $allMatches += $fullMatch
+try {
+    Get-ChildItem -Recurse -File -Include *.txt, *.log, *.docx, *.xlsx, *.csv, *.xml, *.json, *.doc, *.xls, *.sql, *.conf -ErrorAction SilentlyContinue | 
+    Where-Object { $_.FullName -ne $LocalOutputFile } | 
+    ForEach-Object {
+        $totalFiles++
+        $filePath = $_.FullName
+        $extension = $_.Extension.ToLower()
+        Write-Host "Scanning: $filePath" -ForegroundColor White
+        Write-Verbose "Processing file: $filePath (Extension: $extension)"
+        try {
+            $fileContent = $null
+            $fileMatches = 0  # Counter for matches in the current file
+            $uniqueMatches = @{}  # Track unique card numbers in this file
+            if ($extension -eq ".xlsx") {
+                if ($excelModuleAvailable) {
+                    $fileContent = Get-ExcelContent -FilePath $filePath
+                } else {
+                    Write-Host "  Skipping Excel file (ImportExcel module not available)" -ForegroundColor Yellow
+                    Write-Verbose "ImportExcel module not available. Skipping $filePath."
+                    Save-OutputToFile -Output "Skipped file: $filePath (ImportExcel module not available)"
+                    continue
                 }
+            } elseif ($extension -eq ".docx") {
+                $fileContent = Get-DocxContent -FilePath $filePath
+            } else {
+                Write-Verbose "Reading text file content for: $filePath"
+                $fileContent = Get-Content -Path $filePath -Raw -ErrorAction Stop
             }
-
-            # If no matches were found in this file, display a message
-            if ($fileMatches -eq 0) {
+            if ($fileContent) {
+                Write-Verbose "Content retrieved. Applying regex for card number detection."
+                $matches = [regex]::Matches($fileContent, '\b(\d{4})[- ]?\d{4}[- ]?\d{4}[- ]?\d{4}\b')
+                Write-Verbose "Found $($matches.Count) potential card number matches."
+                foreach ($match in $matches) {
+                    $firstFourDigits = $match.Groups[1].Value
+                    $fullMatch = $match.Value -replace '[-\s]', ''
+                    Write-Verbose "Processing match: $fullMatch (BIN: $firstFourDigits)"
+                    if ($skipCards -contains $fullMatch) {
+                        Write-Verbose "Skipping test card: $fullMatch"
+                        continue
+                    }
+                    if ($validBins.ContainsKey($firstFourDigits)) {
+                        Write-Verbose "Valid BIN detected: $firstFourDigits"
+                        if (Test-LuhnAlgorithm -CardNumber $fullMatch) {
+                            if (-not $uniqueMatches.ContainsKey($fullMatch)) {
+                                $matchFound = $true
+                                $totalMatches++
+                                $fileMatches++
+                                $matchOutput = "File: $filePath`n  Match: $fullMatch"
+                                Write-Host $matchOutput -ForegroundColor Green
+                                Save-OutputToFile -Output $matchOutput
+                                $allMatches += $fullMatch
+                                $uniqueMatches[$fullMatch] = $true
+                                Write-Verbose "Valid card number confirmed: $fullMatch"
+                            } else {
+                                Write-Verbose "Duplicate card number $fullMatch in $filePath, skipping."
+                            }
+                        } else {
+                            Write-Verbose "Card number $fullMatch failed Luhn validation."
+                        }
+                    } else {
+                        Write-Verbose "Invalid BIN: $firstFourDigits"
+                    }
+                }
+                if ($fileMatches -eq 0) {
+                    Write-Host "  No card numbers detected" -ForegroundColor Yellow
+                    Write-Verbose "No valid card numbers found in $filePath."
+                }
+            } else {
                 Write-Host "  No card numbers detected" -ForegroundColor Yellow
+                Write-Verbose "No content retrieved from $filePath."
             }
-        } else {
-            # If file content couldn't be read, treat as no matches
+        } catch {
+            $errorMsg = "Error reading file: $filePath - $_"
+            Save-OutputToFile -Output $errorMsg
             Write-Host "  No card numbers detected" -ForegroundColor Yellow
+            Write-Verbose $errorMsg
         }
-    } catch {
-        # Handle file read errors (e.g., access denied, corrupted files)
-        Save-OutputToFile -Output "Error reading file: $filePath - $_"
-        Write-Host "  No card numbers detected" -ForegroundColor Yellow
+        Write-Verbose "Completed processing file: $filePath"
     }
-}
-
-# Final summary report
-$summary = @"
+} catch {
+    $errorMsg = "Error in file scanning loop: $_"
+    Write-Host $errorMsg -ForegroundColor Red
+    Save-OutputToFile -Output $errorMsg
+} finally {
+    # Final summary report
+    $summary = @"
 ----------------------------------------
 Scan Completed.
 Total Files Scanned: $totalFiles
@@ -244,8 +267,8 @@ Results saved to:
   - $LocalOutputFile
 ----------------------------------------
 "@
-Write-Host $summary -ForegroundColor Cyan
-Save-OutputToFile -Output $summary
-
-Write-Host "Press Enter to exit."
-$null = Read-Host
+    Write-Host $summary -ForegroundColor Cyan
+    Save-OutputToFile -Output $summary
+    Write-Host "Press Enter to exit." -ForegroundColor White
+    $null = Read-Host
+}

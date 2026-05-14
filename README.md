@@ -125,21 +125,6 @@ The script scans for **16-digit numeric strings** and performs the following che
 
     $NetworkOutputFile = "Drive:\CARDSCAN\$HostName-$TimeStamp-output.txt"  # Save results to network path
     ```
----
-## 🧾 Tool Comparison
-| Feature                              | 🛠️ PowerShell Script | 🕷️ CUPSPIDER | 🔍 PANfinder | 💼 Commercial Tools |
-|--------------------------------------|:--------------------:|:------------:|:------------:|:-------------------:|
-| Open Source                          | ✅ Yes                | ✅ Yes       | ✅ Yes       | ❌ No               |
-| Text File Scanning                   | ✅ Yes                | ✅ Yes       | ✅ Yes       | ✅ Yes              |
-| Office File Support (.docx, .xlsx)   | ✅ Yes                | ❌ No        | ❌ No        | ✅ Yes              |
-| Luhn Algorithm Validation            | ✅ Yes                | ✅ Yes       | ✅ Yes       | ✅ Yes              |
-| Valid BIN Filtering                  | ✅ Yes                | ❌ No        | ❌ No        | ✅ Yes              |
-| Test Card Exclusion                  | ✅ Yes                | ❌ No        | ❌ No        | ✅ Yes              |
-| Excel Export Support                 | ✅ Yes                | ❌ No        | ❌ No        | ✅ Yes              |
-| Network Output Logging               | ✅ Yes                | ❌ No        | ❌ No        | ✅ Yes              |
-| Fully Customizable                   | ✅ Script-Based       | ⚠️ Limited   | ⚠️ Limited   | ⚠️ GUI Configurable |
-| OS Compatibility                     | ❌ Windows Only       | ✅ Cross-OS  | ✅ Cross-OS  | ✅ Mostly           |
-
 ## 🔍 Summary
 - **For Internal Audits and PCI Compliance:** This script is a lightweight, fast, and reliable way to identify unsecured card data — especially useful in Windows-based enterprise environments.
 - **Compared to Python tools:** While CUPSPIDER and PANfinder are powerful in Unix-style environments, they don’t support Office formats or network share logging.
